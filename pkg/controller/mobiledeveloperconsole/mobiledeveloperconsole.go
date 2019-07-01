@@ -209,7 +209,7 @@ func newMDCDeploymentConfig(cr *mdcv1alpha1.MobileDeveloperConsole) (*openshifta
 								},
 								{
 									Name:  "OPENSHIFT_HOST",
-									Value: "WHAT!", // TODO TODO TODO
+									Value: cfg.OpenShiftHost,
 								},
 							},
 							Ports: []corev1.ContainerPort{

@@ -30,3 +30,5 @@ spec:
                   fieldPath: metadata.name
             - name: OPERATOR_NAME
               value: "mobile-developer-console-operator"
+            - name: OPENSHIFT_HOST
+              value: "${OPENSHIFT_HOST}"  # to be filled by whoever is deploying this file

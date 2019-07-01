@@ -17,6 +17,9 @@ code/compile:
 
 .PHONY: code/run
 code/run: code/gen
+ifndef OPENSHIFT_HOST
+	$(error OPENSHIFT_HOST is undefined)
+endif
 	operator-sdk up local
 
 .PHONY: code/gen

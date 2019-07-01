@@ -3,6 +3,8 @@ package config
 import "os"
 
 type Config struct {
+	OpenShiftHost string
+
 	MDCContainerName        string
 	OauthProxyContainerName string
 
@@ -17,6 +19,8 @@ type Config struct {
 
 func New() Config {
 	return Config{
+		OpenShiftHost: getReqEnv("OPENSHIFT_HOST"),
+
 		MDCContainerName:        getEnv("MDC_CONTAINER_NAME", "mdc"),
 		OauthProxyContainerName: getEnv("OAUTH_PROXY_CONTAINER_NAME", "mdc-oauth-proxy"),
 
@@ -37,4 +41,12 @@ func getEnv(key string, defaultVal string) string {
 	}
 
 	return defaultVal
+}
+
+func getReqEnv(key string) string {
+	if value, exists := os.LookupEnv(key); exists {
+		return value
+	}
+
+	panic("Required env var is missing: " + key)
 }

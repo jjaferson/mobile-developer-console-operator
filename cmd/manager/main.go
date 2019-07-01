@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"flag"
 	"fmt"
 	"os"
@@ -76,6 +77,13 @@ func main() {
 	if err != nil {
 		log.Error(err, "")
 		os.Exit(1)
+	}
+
+	if openShiftHost, exists := os.LookupEnv("OPENSHIFT_HOST"); exists == false {
+		log.Error(errors.New("no OPENSHIFT_HOST is set"), "no OPENSHIFT_HOST is set")
+		os.Exit(1)
+	} else {
+		log.Info("MDC instances managed are going to target", "OpenShiftHost", openShiftHost)
 	}
 
 	ctx := context.TODO()
