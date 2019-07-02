@@ -1,0 +1,108 @@
+:toc:
+:toc-placement!:
+
+// gEmoji for admonitions, see
+// https://gist.github.com/dcode/0cfbf2699a1fe9b46ff04c41721dda74#admonitions
+ifdef::env-github[]
+:tip-caption: :bulb:
+:note-caption: :information_source:
+:important-caption: :heavy_exclamation_mark:
+:caution-caption: :fire:
+:warning-caption: :warning:
+endif::[]
+
+// Links (alphabetical order)
+:apache_license: http://www.apache.org/licenses/LICENSE-2.0[Apache License, Version 2.0]
+:application_monitoring_operator: https://github.com/integr8ly/application-monitoring-operator[application-monitoring-operator]
+:code_of_conduct: link:CODE_OF_CONDUCT.md[Contributor Code of Conduct]
+:export_policy: https://aerogear.org/legal/export.html[AeroGear Export Policy]
+:aerogear_freenode: irc://irc.freenode.net/aerogear[#aerogear on FreeNode IRC]
+:aerogear_jira: https://issues.jboss.org/projects/AEROGEAR/issues[AeroGear on JBoss Jira]
+:aerogear_matrix: https://matrix.to/#/!IipcvbGVqkiTUQauSC:matrix.org[#aerogear:matrix.org on Matrix]
+:mailing_list: https://groups.google.com/forum/#!forum/aerogear[Google Groups Mailing List]
+:minishift: https://github.com/minishift/minishift[Minishift]
+:rh_product_security: https://access.redhat.com/security/team/contact[Red Hat Product Security team]
+
+= Mobile Developer Console Operator
+
+The Mobile Developer Console Operator for OpenShift provides an easy way to
+install and manage an AeroGear Mobile Developer Console on OpenShift.
+
+toc::[]
+
+== Installation
+
+As a user with admin permissions, you can easily install the
+unifiedpush-operator in your OpenShift cluster as follows:
+
+....
+oc create namespace unifiedpush
+oc create -n unifiedpush -f deploy/service_account.yaml
+oc create -n unifiedpush -f deploy/role.yaml
+oc create -n unifiedpush -f deploy/role_binding.yaml
+oc create -n unifiedpush -f deploy/mobile-client-crd.yaml
+oc create -n unifiedpush -f deploy/crds/mdc_v1alpha1_mobiledeveloperconsole_crd.yaml
+oc create -n unifiedpush -f deploy/operator.yaml
+....
+
+
+
+
+
+
+
+== OLD SHITE
+
+
+```
+
+# make sure you enabled CORS addon on Minishift
+# https://github.com/aerogear/mobile-developer-console#enable-cors-in-the-openshift-cluster
+
+if minishift addons list | grep cors ; then
+    minishift addons apply cors
+else
+    MINISHIFT_ADDONS_PATH=/tmp/minishift-addons
+    rm -rf $MINISHIFT_ADDONS_PATH && git clone https://github.com/minishift/minishift-addons.git $MINISHIFT_ADDONS_PATH
+    # Not needed after https://github.com/minishift/minishift-addons/pull/187 is merged
+    cd $MINISHIFT_ADDONS_PATH
+    git fetch origin pull/187/head:cors-fix && git checkout cors-fix
+    minishift addons install /tmp/minishift-addons/add-ons/cors
+    minishift addons apply cors
+fi
+minishift addon apply cors
+
+oc login -u system:admin
+make cluster/clean
+make cluster/prepare
+
+OPENSHIFT_HOST=$(minishift ip):8443 make code/run
+
+
+kubectl apply  -n mobile-developer-console -f deploy/crds/mdc_v1alpha1_mobiledeveloperconsole_cr.yaml
+
+AFTER WORK - things that aren't done by the operator yet.
+
+MDC_ROUTE=$(oc -n mobile-developer-console get route example-mdc-mdc-proxy --template "{{.spec.host}}")
+
+cat <<EOF | oc apply -f -
+apiVersion: v1
+grantMethod: auto
+kind: OAuthClient
+metadata:
+  name: mobile-developer-console
+secret: SECRETPLACEHOLDER
+redirectURIs: ["https://${MDC_ROUTE}"]
+EOF
+
+
+# needed to make the MDC server side SA to list/watch/etc some resources in all namespaces
+oc create clusterrole mobileclient-admin --verb=create,delete,get,list,patch,update,watch --resource=mobileclients,secrets,configmaps
+oc adm policy add-cluster-role-to-user mobileclient-admin system:serviceaccount:mobile-developer-console:example-mdc
+
+# not sure if we need the same things for keycloakrealms, mobilesecurityserviceapps
+
+
+oc rollout latest example-mdc
+
+```
