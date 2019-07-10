@@ -79,7 +79,7 @@ export OPENSHIFT_HOST=https://$(minishift ip)
 == Installing the Operator
 
 As a user with admin permissions, you can install the
-mobile-security-service-operator in your OpenShift cluster as follows:
+mobile-developer-console-operator in your OpenShift cluster as follows:
 
 ....
 make cluster/prepare
