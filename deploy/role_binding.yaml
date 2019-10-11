@@ -10,17 +10,3 @@ roleRef:
   kind: Role
   name: mobile-developer-console-operator
   apiGroup: rbac.authorization.k8s.io
----
-# The operator also needs everything in mobileclient-admin, otherwise
-# it can't then grant those permissions
-kind: RoleBinding
-apiVersion: rbac.authorization.k8s.io/v1
-metadata:
-  name: mobileclient-admin-operator
-subjects:
-- kind: ServiceAccount
-  name: mobile-developer-console-operator
-roleRef:
-  kind: Role
-  name: mobileclient-admin
-  apiGroup: rbac.authorization.k8s.io

@@ -293,21 +293,53 @@ func newMDCDeploymentConfig(cr *mdcv1alpha1.MobileDeveloperConsole) (*openshifta
 }
 
 func newMobileClientAdminRoleBinding(cr *mdcv1alpha1.MobileDeveloperConsole) (*rbacv1.RoleBinding, error) {
+	name := cr.Name + "-mobileclient-admin"
 	return &rbacv1.RoleBinding{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: cr.Namespace,
-			Name:      cr.Namespace + "-" + cr.Name + "-mobileclient-admin",
+			Name:      name,
 		},
 		RoleRef: rbacv1.RoleRef{
 			APIGroup: rbacv1.GroupName,
 			Kind:     "Role",
-			Name:     "mobileclient-admin",
+			Name:     name,
 		},
 		Subjects: []rbacv1.Subject{
 			{
 				Kind:      rbacv1.ServiceAccountKind,
 				Name:      cr.Name,
 				Namespace: cr.Namespace,
+			},
+		},
+	}, nil
+}
+
+func newMobileClientAdminRole(cr *mdcv1alpha1.MobileDeveloperConsole) (*rbacv1.Role, error) {
+	return &rbacv1.Role{
+		ObjectMeta: metav1.ObjectMeta{
+			Namespace: cr.Namespace,
+			Name:      cr.Name + "-mobileclient-admin",
+		},
+		Rules: []rbacv1.PolicyRule{
+			rbacv1.PolicyRule{
+				APIGroups: []string{""},
+				Resources: []string{"secrets", "configmaps"},
+				Verbs:     []string{"get", "list", "watch"},
+			},
+			rbacv1.PolicyRule{
+				APIGroups: []string{"mdc.aerogear.org"},
+				Resources: []string{"mobileclients"},
+				Verbs:     []string{"get", "list", "watch", "update", "patch"},
+			},
+			rbacv1.PolicyRule{
+				APIGroups: []string{"push.aerogear.org"},
+				Resources: []string{"pushapplications", "androidvariants", "iosvariants", "webpushvariants"},
+				Verbs:     []string{"get", "list", "watch"},
+			},
+			rbacv1.PolicyRule{
+				APIGroups: []string{"mobile-security-service.aerogear.org"},
+				Resources: []string{"mobilesecurityserviceapps"},
+				Verbs:     []string{"get", "list", "watch"},
 			},
 		},
 	}, nil

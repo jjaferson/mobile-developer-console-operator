@@ -70,6 +70,15 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 		return err
 	}
 
+	// Watch for changes to secondary resource Role and requeue the owner MobileDeveloperConsole
+	err = c.Watch(&source.Kind{Type: &rbacv1.Role{}}, &handler.EnqueueRequestForOwner{
+		IsController: true,
+		OwnerType:    &mdcv1alpha1.MobileDeveloperConsole{},
+	})
+	if err != nil {
+		return err
+	}
+
 	// Watch for changes to secondary resource RoleBinding and requeue the owner MobileDeveloperConsole
 	err = c.Watch(&source.Kind{Type: &rbacv1.RoleBinding{}}, &handler.EnqueueRequestForOwner{
 		IsController: true,
@@ -173,7 +182,29 @@ func (r *ReconcileMobileDeveloperConsole) Reconcile(request reconcile.Request) (
 	}
 	//#endregion
 
-	//#region RoleBinding
+	//#region MobileClientAdminRole
+	role, err := newMobileClientAdminRole(instance)
+
+	// Set MobileDeveloperConsole instance as the owner and controller
+	if err := controllerutil.SetControllerReference(instance, role, r.scheme); err != nil {
+		return reconcile.Result{}, err
+	}
+
+	// Check if this Role already exists
+	foundRole := &rbacv1.Role{}
+	err = r.client.Get(context.TODO(), types.NamespacedName{Name: role.Name, Namespace: role.Namespace}, foundRole)
+	if err != nil && errors.IsNotFound(err) {
+		reqLogger.Info("Creating a new Role", "Role.Namespace", role.Namespace, "Role.Name", role.Name)
+		err = r.client.Create(context.TODO(), role)
+		if err != nil {
+			return reconcile.Result{}, err
+		}
+	} else if err != nil {
+		return reconcile.Result{}, err
+	}
+	//#endregion
+
+	//#region MobileClientAdminRoleBinding
 	roleBinding, err := newMobileClientAdminRoleBinding(instance)
 
 	// Set MobileDeveloperConsole instance as the owner and controller
@@ -192,6 +223,19 @@ func (r *ReconcileMobileDeveloperConsole) Reconcile(request reconcile.Request) (
 		}
 	} else if err != nil {
 		return reconcile.Result{}, err
+	}
+	//#endregion
+
+	//#region DeleteOldRoleBinding
+	// TODO: This can be removed after a release or two
+	oldRoleBinding := &rbacv1.RoleBinding{}
+	oldRoleBindingName := instance.Namespace + "-" + instance.Name + "-mobileclient-admin"
+	err = r.client.Get(context.TODO(), types.NamespacedName{Name: oldRoleBindingName, Namespace: instance.Namespace}, oldRoleBinding)
+	if err == nil && oldRoleBinding.Name != "" {
+		err = r.client.Delete(context.TODO(), oldRoleBinding)
+		if err != nil {
+			reqLogger.Error(err, "Failed to delete old Rolebinding")
+		}
 	}
 	//#endregion
 

@@ -53,7 +53,6 @@ cluster/prepare:
 	-kubectl create -n $(NAMESPACE) -f deploy/service_account.yaml
 	-kubectl create -n $(NAMESPACE) -f deploy/role.yaml
 	-kubectl create -n $(NAMESPACE) -f deploy/role_binding.yaml
-	-kubectl create -n $(NAMESPACE) -f deploy/mobileclient_admin_role.yaml
 	-kubectl create -n $(NAMESPACE) -f deploy/mobiledeveloper_role.yaml
 	-kubectl create -n $(NAMESPACE) -f deploy/mobiledeveloper_rolebinding.yaml
 	-kubectl apply  -n $(NAMESPACE) -f deploy/crds/mdc_v1alpha1_mobiledeveloperconsole_crd.yaml
@@ -64,7 +63,6 @@ cluster/clean:
 	make uninstall
 	-kubectl delete -f deploy/role.yaml
 	-kubectl delete -n $(NAMESPACE) -f deploy/role_binding.yaml
-	-kubectl delete -n $(NAMESPACE) -f deploy/mobileclient_admin_role.yaml
 	-kubectl delete -n $(NAMESPACE) -f deploy/mobiledeveloper_role.yaml
 	-kubectl delete -n $(NAMESPACE) -f deploy/mobiledeveloper_rolebinding.yaml
 	-kubectl delete -n $(NAMESPACE) -f deploy/service_account.yaml

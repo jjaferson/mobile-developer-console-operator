@@ -39,6 +39,7 @@ rules:
 - apiGroups:
   - rbac.authorization.k8s.io
   resources:
+  - roles
   - rolebindings
   verbs:
   - get
@@ -119,6 +120,47 @@ rules:
   - update
   - patch
   - delete
+
+# Additional permissions needed by MDC SA -- operator needs them to be
+# able to create the Role/Rolebinding
+- apiGroups:
+    - ""
+  resources:
+    - secrets
+    - configmaps
+  verbs:
+    - get
+    - list
+    - watch
+- apiGroups:
+    - mdc.aerogear.org
+  resources:
+    - mobileclients
+  verbs:
+    - get
+    - list
+    - watch
+    - update
+    - patch
+- apiGroups:
+    - push.aerogear.org
+  resources:
+    - pushapplications
+    - androidvariants
+    - iosvariants
+    - webpushvariants
+  verbs:
+    - get
+    - list
+    - watch
+- apiGroups:
+    - mobile-security-service.aerogear.org
+  resources:
+    - mobilesecurityserviceapps
+  verbs:
+    - get
+    - list
+    - watch
 
 # Needed to be able to create ServiceMonitor for operator & operands
 - apiGroups:
